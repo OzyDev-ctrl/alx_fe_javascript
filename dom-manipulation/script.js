@@ -27,7 +27,7 @@ function syncQuotes(fetchedQuotes) {
     if (JSON.stringify(quotes) !== JSON.stringify(fetchedQuotes)) {
         quotes = fetchedQuotes;
         localStorage.setItem('quotes', JSON.stringify(quotes));
-        notification.textContent = 'Data updated from server.';
+        alert('Quotes synced with server!'); // Notify user
         displayRandomQuote();
     }
 }
@@ -71,7 +71,7 @@ async function postQuoteToServer(quote) {
             },
             body: JSON.stringify(quote),
         });
-        notification.textContent = 'New quote posted to server.';
+        alert('New quote posted to server!'); // Notify user
     } catch (error) {
         console.error('Error posting quote to server:', error);
     }
