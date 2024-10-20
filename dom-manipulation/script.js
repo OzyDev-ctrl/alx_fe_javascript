@@ -14,16 +14,21 @@ async function fetchQuotesFromServer() {
             category: 'Server' // Default category for server quotes
         }));
 
-        // Check for conflicts
-        if (JSON.stringify(quotes) !== JSON.stringify(fetchedQuotes)) {
-            // If there are discrepancies, update the local quotes with server quotes
-            quotes = fetchedQuotes;
-            localStorage.setItem('quotes', JSON.stringify(quotes));
-            notification.textContent = 'Data updated from server.';
-            displayRandomQuote();
-        }
+        // Sync quotes with the server data
+        syncQuotes(fetchedQuotes);
     } catch (error) {
         console.error('Error fetching quotes:', error);
+    }
+}
+
+// Function to synchronize local quotes with the server quotes
+function syncQuotes(fetchedQuotes) {
+    // Check for conflicts and update local quotes
+    if (JSON.stringify(quotes) !== JSON.stringify(fetchedQuotes)) {
+        quotes = fetchedQuotes;
+        localStorage.setItem('quotes', JSON.stringify(quotes));
+        notification.textContent = 'Data updated from server.';
+        displayRandomQuote();
     }
 }
 
@@ -37,7 +42,7 @@ function displayRandomQuote() {
 }
 
 // Function to add a new quote
-function addQuote() {
+async function addQuote() {
     const newQuoteText = document.getElementById('newQuoteText').value;
     const newQuoteCategory = document.getElementById('newQuoteCategory').value;
 
@@ -45,10 +50,30 @@ function addQuote() {
         const newQuote = { text: newQuoteText, category: newQuoteCategory };
         quotes.push(newQuote);
         localStorage.setItem('quotes', JSON.stringify(quotes));
+
+        // Post new quote to the server
+        await postQuoteToServer(newQuote);
+
         displayRandomQuote();
         populateCategories();
         document.getElementById('newQuoteText').value = '';
         document.getElementById('newQuoteCategory').value = '';
+    }
+}
+
+// Function to post a new quote to the server
+async function postQuoteToServer(quote) {
+    try {
+        await fetch('https://jsonplaceholder.typicode.com/posts', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(quote),
+        });
+        notification.textContent = 'New quote posted to server.';
+    } catch (error) {
+        console.error('Error posting quote to server:', error);
     }
 }
 
