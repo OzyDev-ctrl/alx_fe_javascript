@@ -40,15 +40,20 @@ function addQuote() {
   }
 }
 
-// Function to export quotes to a JSON file
+// Function to export quotes to a JSON file using Blob
 function exportToJsonFile() {
-  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(quotes));
+  const jsonQuotes = JSON.stringify(quotes);
+  const blob = new Blob([jsonQuotes], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+
   const downloadAnchorNode = document.createElement('a');
-  downloadAnchorNode.setAttribute("href", dataStr);
-  downloadAnchorNode.setAttribute("download", "quotes.json");
-  document.body.appendChild(downloadAnchorNode); // required for Firefox
+  downloadAnchorNode.setAttribute('href', url);
+  downloadAnchorNode.setAttribute('download', 'quotes.json');
+  document.body.appendChild(downloadAnchorNode);
   downloadAnchorNode.click();
   downloadAnchorNode.remove();
+
+  URL.revokeObjectURL(url); // Clean up the URL object
 }
 
 // Function to import quotes from a JSON file
@@ -60,14 +65,18 @@ function importFromJsonFile(event) {
   }
   const reader = new FileReader();
   reader.onload = function(event) {
-    const importedQuotes = JSON.parse(event.target.result);
-    if (Array.isArray(importedQuotes)) {
-      // Update quotes array and save to local storage
-      quotes = importedQuotes;
-      localStorage.setItem('quotes', JSON.stringify(quotes));
-      alert("Quotes imported successfully!");
-    } else {
-      alert("Invalid file format.");
+    try {
+      const importedQuotes = JSON.parse(event.target.result);
+      if (Array.isArray(importedQuotes)) {
+        // Update quotes array and save to local storage
+        quotes = importedQuotes;
+        localStorage.setItem('quotes', JSON.stringify(quotes));
+        alert("Quotes imported successfully!");
+      } else {
+        throw new Error("Invalid file format.");
+      }
+    } catch (error) {
+      alert("Error importing quotes: " + error.message);
     }
   };
   reader.readAsText(file);
